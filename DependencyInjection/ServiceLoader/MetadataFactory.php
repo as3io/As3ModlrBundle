@@ -24,6 +24,7 @@ class MetadataFactory implements ServiceLoaderInterface
             [
                 new Reference(Utility::getAliasedName('metadata.default_driver')),
                 new Reference(Utility::getAliasedName('util.entity')),
+                new Reference(Utility::getAliasedName('event_dispatcher')),
             ]
         );
 

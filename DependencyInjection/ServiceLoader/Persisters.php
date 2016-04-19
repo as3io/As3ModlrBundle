@@ -46,15 +46,39 @@ class Persisters implements ServiceLoaderInterface
      * Creates the connection service definition.
      *
      * @param   array   $persisterConfig
+     * @param   string  $configName         The name of the connection configuration service
      * @return  Definition
      */
-    private function createConnection(array $persisterConfig)
+    private function createConnection(array $persisterConfig, $configName)
     {
         $options = isset($persisterConfig['parameters']['options']) && is_array($persisterConfig['parameters']['options']) ? $persisterConfig['parameters']['options'] : [];
         $definition = new Definition(
             'Doctrine\MongoDB\Connection',
-            [$persisterConfig['parameters']['host'], $options]
+            [$persisterConfig['parameters']['host'], $options, new Reference($configName)]
         );
+        $definition->setPublic(false);
+        return $definition;
+    }
+
+    /**
+     * Creates the connection configuration service definition.
+     *
+     * @return  Definition
+     */
+    private function createConfiguration($persisterName, $container)
+    {
+        $loggerName = sprintf('%s.logger', $persisterName);
+        $definition = new Definition(
+            Utility::getLibraryClass('Persister\MongoDb\Logger'),
+            [new Reference('logger')]
+        );
+        $definition->addTag('monolog.logger', ['channel' => 'as3_modlr']);
+        $definition->setPublic(false);
+        $container->setDefinition($loggerName, $definition);
+
+        $definition = new Definition('Doctrine\MongoDB\Configuration');
+        $definition->addMethodCall('setLoggerCallable', [[new Reference($loggerName), 'logQuery']]);
+        $definition->addTag('monolog.logger', ['channel' => 'as3_modlr']);
         $definition->setPublic(false);
         return $definition;
     }
@@ -89,9 +113,14 @@ class Persisters implements ServiceLoaderInterface
         $definition = $this->createSmf();
         $container->setDefinition($smfName, $definition);
 
+        // Configuration
+        $configName = sprintf('%s.configuration', $persisterName);
+        $definition = $this->createConfiguration($persisterName, $container);
+        $container->setDefinition($configName, $definition);
+
         // Connection
         $conName = sprintf('%s.connection', $persisterName);
-        $definition = $this->createConnection($persisterConfig);
+        $definition = $this->createConnection($persisterConfig, $configName);
         $container->setDefinition($conName, $definition);
 
         // Formatter

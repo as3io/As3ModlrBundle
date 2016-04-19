@@ -12,14 +12,14 @@ services:
     as3_modlr.store:
         class: As3\Modlr\Store\Store
         arguments:
-            - @as3_modlr.metadata.factory
-            - @as3_modlr.storage_manager
-            - @as3_modlr.data_types.factory
-            - @as3_modlr.event_dispatcher
+            - "@as3_modlr.metadata.factory"
+            - "@as3_modlr.storage_manager"
+            - "@as3_modlr.data_types.factory"
+            - "@as3_modlr.event_dispatcher"
 
     as3_modlr.util.entity:
         class: As3\Modlr\Util\EntityUtility
-        arguments: [ @as3_modlr.rest.configuration, @as3_modlr.data_types.factory ]
+        arguments: [ "@as3_modlr.rest.configuration", "@as3_modlr.data_types.factory" ]
 
     as3_modlr.util.validator:
         class: As3\Modlr\Util\Validator

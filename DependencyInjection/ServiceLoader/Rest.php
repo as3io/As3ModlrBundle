@@ -49,7 +49,7 @@ class Rest implements ServiceLoaderInterface
                 new Reference($configName),
             ]
         );
-        $definition->setPublic(false);
+        $definition->setPublic(true);
         return $definition;
     }
 

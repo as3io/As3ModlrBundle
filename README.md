@@ -69,6 +69,13 @@ as3_modlr:
             type: elastic
 ```
 
+To utilize the external REST API, you must also include modlr's routing file. This will allow modlr to handle all requests to `as3_modlr.rest.root_endpoint`. To prevent any routing conflicts, you should add this before any other bundle or your application route definitions.
+```
+# app/config/routing.yml
+as3_modlr_bundle:
+    resource: "@As3ModlrBundle/Resources/config/routing.yml"
+```
+
 Next you must define your models! By default, modlr's metadata driver will look for YAML files in `app/Resources/As3ModlrBundle/models` and `app/Resources/As3ModlrBundle/mixins`.
 
 You can customize where your definitions are stored by setting the `models_dir` parameter of your metadata driver. See the [bundle configuration](#) documentation for more information.
