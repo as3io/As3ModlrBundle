@@ -19,13 +19,14 @@ class MetadataDrivers implements ServiceLoaderInterface
      *
      * @param   string  $modelDir
      * @param   string  $mixinDir
+     * @param   string  $embedDir
      * @return  Definition
      */
-    private function createFileLocator($modelDir, $mixinDir)
+    private function createFileLocator($modelDir, $mixinDir, $embedDir)
     {
         $definition = new Definition(
             Utility::getLibraryClass('Metadata\Driver\FileLocator'),
-            [$modelDir, $mixinDir]
+            [$modelDir, $mixinDir, $embedDir]
         );
         $definition->setPublic(false);
         return $definition;
@@ -42,15 +43,16 @@ class MetadataDrivers implements ServiceLoaderInterface
     private function createYmlDriver($driverName, array $driverConfig, ContainerBuilder $container)
     {
         // Definition directories
-        list($modelDir, $mixinDir) = $this->getDefinitionDirs($driverConfig, $container);
+        list($modelDir, $mixinDir, $embedDir) = $this->getDefinitionDirs($driverConfig, $container);
 
         // Set the directories to the dirs container parameter.
         Utility::appendParameter('dirs', sprintf('%s.model_dir', $driverName), $modelDir, $container);
         Utility::appendParameter('dirs', sprintf('%s.mixin_dir', $driverName), $mixinDir, $container);
+        Utility::appendParameter('dirs', sprintf('%s.embed_dir', $driverName), $embedDir, $container);
 
         // File locator
         $locatorName = sprintf('%s.file_locator', $driverName);
-        $locatorDef = $this->createFileLocator($modelDir, $mixinDir);
+        $locatorDef = $this->createFileLocator($modelDir, $mixinDir, $embedDir);
         $container->setDefinition($locatorName, $locatorDef);
 
         // Driver
@@ -95,7 +97,8 @@ class MetadataDrivers implements ServiceLoaderInterface
     {
         $modelDir = $this->getDefinitionDir('model', $driverConfig, $container);
         $mixinDir = $this->getDefinitionDir('mixin', $driverConfig, $container);
-        return [$modelDir, $mixinDir];
+        $embedDir = $this->getDefinitionDir('embed', $driverConfig, $container);
+        return [$modelDir, $mixinDir, $embedDir];
     }
 
     /**
