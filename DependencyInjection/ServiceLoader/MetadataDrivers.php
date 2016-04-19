@@ -19,13 +19,14 @@ class MetadataDrivers implements ServiceLoaderInterface
      *
      * @param   string  $modelDir
      * @param   string  $mixinDir
+     * @param   string  $embedDir
      * @return  Definition
      */
-    private function createFileLocator($modelDir, $mixinDir)
+    private function createFileLocator($modelDir, $mixinDir, $embedDir)
     {
         $definition = new Definition(
             Utility::getLibraryClass('Metadata\Driver\FileLocator'),
-            [$modelDir, $mixinDir]
+            [$modelDir, $mixinDir, $embedDir]
         );
         $definition->setPublic(false);
         return $definition;
@@ -47,7 +48,7 @@ class MetadataDrivers implements ServiceLoaderInterface
         // Set the directories to the dirs container parameter.
         Utility::appendParameter('dirs', sprintf('%s.model_dir', $driverName), $modelDir, $container);
         Utility::appendParameter('dirs', sprintf('%s.mixin_dir', $driverName), $mixinDir, $container);
-        Utility::appendParameter('dirs', sprintf('%s.mixin_dir', $driverName), $embedDir, $container);
+        Utility::appendParameter('dirs', sprintf('%s.embed_dir', $driverName), $embedDir, $container);
 
         // File locator
         $locatorName = sprintf('%s.file_locator', $driverName);
