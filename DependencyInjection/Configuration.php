@@ -104,6 +104,7 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('service')->cannotBeEmpty()->end()
 
                             ->arrayNode('parameters')
+                                ->performNoDeepMerging()
                                 ->prototype('variable')->end()
                             ->end()
 
@@ -127,6 +128,7 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('service')->cannotBeEmpty()->end()
 
                         ->arrayNode('parameters')
+                            ->performNoDeepMerging()
                             ->prototype('variable')->end()
                         ->end()
 
@@ -163,6 +165,7 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('service')->cannotBeEmpty()->end()
 
                     ->arrayNode('parameters')
+                        ->performNoDeepMerging()
                         ->prototype('variable')->end()
                     ->end()
                 ->end()
@@ -221,6 +224,7 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('service')->cannotBeEmpty()->end()
 
                     ->arrayNode('parameters')
+                        ->performNoDeepMerging()
                         ->prototype('variable')->end()
                     ->end()
                 ->end()
