@@ -98,6 +98,20 @@ class Persisters implements ServiceLoaderInterface
     }
 
     /**
+     * Creates the persistence hydrator service definition.
+     *
+     * @return  Definition
+     */
+    private function createHydrator()
+    {
+        $definition = new Definition(
+            Utility::getLibraryClass('Persister\MongoDb\Hydrator')
+        );
+        $definition->setPublic(false);
+        return $definition;
+    }
+
+    /**
      * Creates the MongoDB persister service definition.
      * Will also load support services.
      *
@@ -133,10 +147,15 @@ class Persisters implements ServiceLoaderInterface
         $definition = $this->createQuery($conName, $formatterName);
         $container->setDefinition($queryName, $definition);
 
+        // Hydrator
+        $hydratorName = sprintf('%s.hydrator', $persisterName);
+        $definition = $this->createHydrator();
+        $container->setDefinition($hydratorName, $definition);
+
         // Persister
         return new Definition(
             Utility::getLibraryClass('Persister\MongoDb\Persister'),
-            [new Reference($queryName), new Reference($smfName)]
+            [new Reference($queryName), new Reference($smfName), new Reference($hydratorName)]
         );
     }
 
