@@ -21,8 +21,22 @@ class EventSubscribersPass implements CompilerPassInterface
     {
         $dispatcher = $container->getDefinition(Utility::getAliasedName('event_dispatcher'));
 
+        $sortFunc = function ($a, $b) {
+            $a = isset($a['priority']) ? (Integer) $a['priority'] : 0;
+            $b = isset($b['priority']) ? (Integer) $b['priority'] : 0;
+
+            return $a > $b ? -1 : 1;
+        };
+
         $tagged = $container->findTaggedServiceIds(Utility::getAliasedName('event_subscriber'));
+        $subscribers = [];
         foreach ($tagged as $id => $tags) {
+            foreach ($tags as $attributes) {
+                $subscribers[$id] = $attributes;
+            }
+        }
+        uasort($subscribers, $sortFunc);
+        foreach ($subscribers as $id => $attrs) {
             $dispatcher->addMethodCall('addSubscriber', [new Reference($id)]);
         }
     }
