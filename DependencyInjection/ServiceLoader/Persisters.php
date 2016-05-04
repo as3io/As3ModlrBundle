@@ -61,24 +61,48 @@ class Persisters implements ServiceLoaderInterface
     }
 
     /**
+     *
      * Creates the connection configuration service definition.
+     *
+     * @param   string              $persisterName
+     * @param   array               $persisterConfig
+     * @param   ContainerBuilder    $container
+     * @return  Definition
+     */
+    private function createConfiguration($persisterName, array $persisterConfig, ContainerBuilder $container)
+    {
+        $configDef = new Definition('Doctrine\MongoDB\Configuration');
+        $configDef->setPublic(false);
+
+        if (isset($persisterConfig['parameters']['profiling']) && true == $persisterConfig['parameters']['profiling']) {
+            $dataCollectorId = sprintf('%s.data_collector', $persisterName);
+            $collectorDef = $this->createDataCollector();
+            $container->setDefinition($dataCollectorId, $collectorDef);
+            $configDef->addMethodCall('setLoggerCallable', [[new Reference($dataCollectorId), 'logQuery']]);
+        } else {
+            $loggerName = sprintf('%s.logger', $persisterName);
+            $loggerDef = new Definition(
+                Utility::getLibraryClass('Persister\MongoDb\Logger'),
+                [new Reference('logger')]
+            );
+            $loggerDef->addTag('monolog.logger', ['channel' => 'as3_modlr']);
+            $loggerDef->setPublic(false);
+            $container->setDefinition($loggerName, $loggerDef);
+            $configDef->addMethodCall('setLoggerCallable', [[new Reference($loggerName), 'logQuery']]);
+        }
+        return $configDef;
+    }
+    /**
+     * Creates the persistence data collector service definition.
      *
      * @return  Definition
      */
-    private function createConfiguration($persisterName, $container)
+    private function createDataCollector()
     {
-        $loggerName = sprintf('%s.logger', $persisterName);
         $definition = new Definition(
-            Utility::getLibraryClass('Persister\MongoDb\Logger'),
-            [new Reference('logger')]
+            Utility::getBundleClass('DataCollector\MongoDb\PrettyDataCollector')
         );
-        $definition->addTag('monolog.logger', ['channel' => 'as3_modlr']);
-        $definition->setPublic(false);
-        $container->setDefinition($loggerName, $definition);
-
-        $definition = new Definition('Doctrine\MongoDB\Configuration');
-        $definition->addMethodCall('setLoggerCallable', [[new Reference($loggerName), 'logQuery']]);
-        $definition->addTag('monolog.logger', ['channel' => 'as3_modlr']);
+        $definition->addTag('data_collector', ['id' => 'as3persistermongodb', 'template' => 'As3ModlrBundle:Collector:mongodb']);
         $definition->setPublic(false);
         return $definition;
     }
@@ -129,7 +153,7 @@ class Persisters implements ServiceLoaderInterface
 
         // Configuration
         $configName = sprintf('%s.configuration', $persisterName);
-        $definition = $this->createConfiguration($persisterName, $container);
+        $definition = $this->createConfiguration($persisterName, $persisterConfig, $container);
         $container->setDefinition($configName, $definition);
 
         // Connection
