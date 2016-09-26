@@ -25,6 +25,7 @@ class Configuration implements ConfigurationInterface
                 ->append($this->getMetadataNode())
                 ->append($this->getPersistersNode())
                 ->append($this->getRestNode())
+                ->append($this->getSchemaIndicesNode())
                 ->append($this->getSearchClientsNode())
             ->end()
         ;
@@ -205,6 +206,40 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
+     * Gets the schema indices configuration node.
+     *
+     * @return  \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition
+     */
+    private function getSchemaIndicesNode()
+    {
+        $node = $this->createRootNode('schema_indices');
+        return $node
+            ->prototype('array')
+                ->treatNullLike([])
+                ->children()
+                    ->scalarNode('model_type')->isRequired()->cannotBeEmpty()->end()
+                    ->scalarNode('name')->end()
+                    ->arrayNode('keys')
+                        ->performNoDeepMerging()
+                        ->cannotBeEmpty()
+                        ->prototype('variable')->end()
+                    ->end()
+                    ->arrayNode('options')
+                        ->performNoDeepMerging()
+                        ->prototype('variable')->end()
+                    ->end()
+                ->end()
+            ->end()
+            ->validate()
+                ->always(function($v) {
+                    $v = $this->validateSchemaIndices($v);
+                    return $v;
+                })
+            ->end()
+        ;
+    }
+
+    /**
      * Gets the search clients configuration node.
      *
      * @return  \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition
@@ -358,6 +393,34 @@ class Configuration implements ConfigurationInterface
                     break;
             }
         }
+    }
+
+    /**
+     * Validates the schema indices config.
+     *
+     * @param   array   $indices
+     * @return  self
+     * @throws  InvalidConfigurationException
+     */
+    private function validateSchemaIndices(array $indices)
+    {
+        foreach ($indices as $k => $index) {
+            // Set default name, if not present.
+            if (!isset($index['name'])) {
+                $name = 'modlr_';
+                foreach ($index['keys'] as $key => $value) {
+                    $name .= sprintf('_%s', $key);
+                    if (is_numeric($value)) {
+                        $name .= sprintf('_%s', $value);
+                    }
+                }
+                $indices[$k]['name'] = $name;
+            }
+            if (empty($index['keys'])) {
+                throw new InvalidConfigurationException(sprintf('At least one key must be specified to define an index at "as3_modlr.schema_indices.%s.keys"!', $k));
+            }
+        }
+        return $indices;
     }
 
     /**
