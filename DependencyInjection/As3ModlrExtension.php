@@ -22,6 +22,9 @@ class As3ModlrExtension extends Extension
         // Process the config.
         $config = $this->processConfiguration(new Configuration(), $configs);
 
+        // Index definitions
+        Utility::appendParameter('schema', 'indices', $config['schema_indices'], $container);
+
         // Load bundle services.
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');

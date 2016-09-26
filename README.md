@@ -84,7 +84,12 @@ You can customize where your definitions are stored by setting the `models_dir` 
 
 See [modlr documentation](#) for additional information.
 
-This bundle provides a command to rebuild modlr's metadatacache:
+This bundle provides commands to rebuild modlr's metadatacache:
 ```
 app/console as3:modlr:metadata:cache:clear [model_type] [--no-warm]
+```
+
+Create collection schema:
+```
+app/console as3:modlr:schema:create [model_type]
 ```
