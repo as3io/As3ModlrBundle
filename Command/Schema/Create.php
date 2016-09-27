@@ -2,7 +2,7 @@
 
 namespace As3\Bundle\ModlrBundle\Command\Schema;
 
-use As3\Bundle\ModlrBundle\Schema\Manager;
+use As3\Modlr\Store\Store;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,19 +17,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Create extends Command
 {
     /**
-     * @var Manager
+     * @var Store
      */
-    private $manager;
+    private $store;
 
     /**
      * Constructor.
      *
-     * @param   Manager     $manager
+     * @param   Store   $store
      */
-    public function __construct(Manager $manager)
+    public function __construct(Store $store)
     {
         parent::__construct();
-        $this->manager = $manager;
+        $this->store = $store;
     }
 
     /**
@@ -39,7 +39,7 @@ class Create extends Command
     {
         $this
             ->setName('as3:modlr:schema:create')
-            ->setDescription('Creates model indices.')
+            ->setDescription('Creates model schema.')
             ->addArgument('type', InputArgument::OPTIONAL, 'Specify the model type to create for.')
         ;
     }
@@ -52,14 +52,15 @@ class Create extends Command
         $type = $input->getArgument('type') ?: null;
         $types = (null === $type) ? 'all types' : sprintf('model type "%s"', $type);
 
-        $count = count($this->manager->getIndices($type));
-        $output->writeln(sprintf('Creating <info>%s</info> %s for <info>%s</info>',$count, $count == 1 ? 'index' : 'indices', $types));
+        $output->writeln(sprintf('Creating schemata for <info>%s</info>', $types));
 
-        foreach ($this->manager->getIndices($type) as $index) {
-            $output->writeln(sprintf('    Creating index <info>%s</info> for model <info>%s</info>', $index['name'], $index['model_type']));
-            $this->manager->createIndex($index);
+        $types = null === $type ? $this->store->getModelTypes() : [$type];
+        foreach ($types as $type) {
+            $output->writeln(sprintf('    Creating schemata for <info>%s</info>', $type));
+            $metadata = $this->store->getMetadataForType($type);
+            $persister = $this->store->getPersisterFor($type);
+            $persister->createSchemata($metadata);
         }
-
         $output->writeln('<info>Done!</info>');
     }
 }
