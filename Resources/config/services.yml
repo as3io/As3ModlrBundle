@@ -25,12 +25,14 @@ services:
         class: As3\Modlr\Util\Validator
 
     as3_modlr.command.schema.create:
+        private: true
         class: As3\Bundle\ModlrBundle\Command\Schema\Create
         arguments: [ "@as3_modlr.store" ]
         tags:
             - { name: "console.command"}
 
     # as3_modlr.command.schema.sync:
+    #     private: true
     #     class: As3\Bundle\ModlrBundle\Command\Schema\Sync
     #     arguments: [ "@as3_modlr.store" ]
     #     tags:
