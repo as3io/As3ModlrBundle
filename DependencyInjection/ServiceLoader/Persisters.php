@@ -176,11 +176,30 @@ class Persisters implements ServiceLoaderInterface
         $definition = $this->createHydrator();
         $container->setDefinition($hydratorName, $definition);
 
+        // Schema Manager
+        $schemaManagerName = sprintf('%s.schema_manager', $persisterName);
+        $definition = $this->createSchemaManager();
+        $container->setDefinition($schemaManagerName, $definition);
+
         // Persister
         return new Definition(
             Utility::getLibraryClass('Persister\MongoDb\Persister'),
-            [new Reference($queryName), new Reference($smfName), new Reference($hydratorName)]
+            [new Reference($queryName), new Reference($smfName), new Reference($hydratorName), new Reference($schemaManagerName)]
         );
+    }
+
+    /**
+     * Creates the persistence schema manager service definition.
+     *
+     * @return  Definition
+     */
+    private function createSchemaManager()
+    {
+        $definition = new Definition(
+            Utility::getLibraryClass('Persister\MongoDb\SchemaManager')
+        );
+        $definition->setPublic(false);
+        return $definition;
     }
 
     /**
